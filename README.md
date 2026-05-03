@@ -1,132 +1,82 @@
+[English](README.md) | [Русский](README.ru.md)
+
 # win-driver-backup-restore
 
-Минимальная PowerShell-утилита для резервного копирования и восстановления драйверов Windows 11 штатными средствами Windows.
+> Minimal PowerShell utility for backing up and restoring Windows 11 drivers with built-in Windows tools.
 
-## Для кого это
+This open-source repository provides two ready-to-use scripts: one exports installed drivers before a Windows reinstall, and the other restores them after the system is installed again.
 
-- Для пользователей Windows 11 перед переустановкой системы.
-- Для тех, кто хочет сохранить установленные драйверы без сторонних программ.
-- Для случаев, когда нужно быстро вернуть драйверы после чистой установки Windows.
+## Who It Is For
 
-## Что делает
+- Windows 11 users preparing for a clean reinstall.
+- Anyone who wants to preserve installed drivers without third-party software.
+- Anyone who needs a simple driver restore workflow after reinstalling Windows.
 
-- Экспортирует установленные сторонние драйверы через `Export-WindowsDriver`.
-- Сохраняет драйверы в папку `C:\DriverBackups\<COMPUTERNAME>\<timestamp>\drivers`.
-- Дополнительно сохраняет метаданные: список устройств, версии драйверов, сведения о системе и SHA256-хэши.
-- Восстанавливает драйверы из конкретной папки `drivers` через `pnputil`.
+## What It Does
 
-## Скачать скрипты
+- Exports third-party drivers with `Export-WindowsDriver`.
+- Stores them in `C:\DriverBackups\<COMPUTERNAME>\<timestamp>\drivers`.
+- Saves metadata into a `meta` folder.
+- Restores drivers from a specific `drivers` folder through `pnputil`.
 
-Raw-ссылки:
+## Download Scripts
 
 - `https://raw.githubusercontent.com/RoKols2017/win-driver-backup-restore/main/scripts/backup-drivers.ps1`
 - `https://raw.githubusercontent.com/RoKols2017/win-driver-backup-restore/main/scripts/restore-drivers.ps1`
 
-Если вы публикуете fork в другом аккаунте, замените `RoKols2017` на имя своего GitHub-аккаунта.
-
-Скачать через PowerShell:
+If you publish a fork under another account, replace `RoKols2017` with your GitHub username.
 
 ```powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/RoKols2017/win-driver-backup-restore/main/scripts/backup-drivers.ps1" -OutFile ".\backup-drivers.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/RoKols2017/win-driver-backup-restore/main/scripts/restore-drivers.ps1" -OutFile ".\restore-drivers.ps1"
 ```
 
-После скачивания может понадобиться снять блокировку:
+After download, you may need to unblock the files:
 
 ```powershell
 Unblock-File .\backup-drivers.ps1
 Unblock-File .\restore-drivers.ps1
 ```
 
-## Быстрый старт
-
-1. Разрешить запуск скриптов для текущего пользователя:
+## Quick Start
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-2. Запустить резервное копирование:
-
-```powershell
 .\backup-drivers.ps1
-```
-
-3. После переустановки Windows запустить восстановление:
-
-```powershell
 .\restore-drivers.ps1 -DriversRoot "C:\DriverBackups\HOSTNAME\YYYY-MM-DD_HH-mm\drivers"
 ```
 
-Скрипты нужно запускать из PowerShell от имени администратора.
+Run the scripts from an elevated PowerShell session.
 
-## Execution Policy
-
-Проверить текущие политики:
-
-```powershell
-Get-ExecutionPolicy -List
-```
-
-Рекомендуемый вариант для обычного использования:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-Если файл скачан из интернета и заблокирован:
-
-```powershell
-Unblock-File .\backup-drivers.ps1
-Unblock-File .\restore-drivers.ps1
-```
-
-Не рекомендуется использовать `Unrestricted` без необходимости.
-
-Подробности: [`docs/execution-policy.md`](docs/execution-policy.md)
-
-## Где сохраняются драйверы
-
-По умолчанию резервная копия сохраняется на диске `C:`:
+## Default Backup Location
 
 ```text
 C:\DriverBackups\<COMPUTERNAME>\<timestamp>\
 ```
 
-Внутри создаются папки:
+## Restore
 
-- `drivers` — экспортированные драйверы.
-- `meta` — сведения о системе и контрольные данные.
+`restore-drivers.ps1` uses the built-in Windows utility `pnputil` to install drivers from the selected `drivers` folder.
 
-## Восстановление
+## Limitations
 
-Скрипт `restore-drivers.ps1` использует встроенную утилиту Windows `pnputil` и устанавливает драйверы из указанной папки `drivers`, рекурсивно находя `.inf`-файлы.
+- Only third-party drivers are exported.
+- This does not replace a full system image.
+- GPU and chipset drivers are sometimes better installed fresh from the vendor website.
+- Old drivers may not work after major hardware changes.
 
-Пример:
+## Security
 
-```powershell
-.\restore-drivers.ps1 -DriversRoot "C:\DriverBackups\MYPC\2026-04-13_12-00\drivers"
-```
+- Run the scripts as administrator.
+- Read `.ps1` files before running them.
+- Do not run scripts from untrusted sources.
 
-Если допускается автоматическая перезагрузка при необходимости:
+## Documentation
 
-```powershell
-.\restore-drivers.ps1 -DriversRoot "C:\DriverBackups\MYPC\2026-04-13_12-00\drivers" -AllowReboot
-```
-
-## Ограничения
-
-- Экспортируются сторонние драйверы, а не полный образ системы.
-- Это не заменяет полноценный системный backup.
-- Драйверы GPU и chipset иногда лучше ставить свежими с сайта производителя.
-- Старые драйверы могут не подойти после смены железа.
-
-## Безопасность
-
-- Скрипты должны запускаться от администратора.
-- Перед запуском стоит прочитать содержимое `.ps1`-файлов.
-- Не запускайте скрипты из непроверенных источников.
+| Guide | Description |
+|-------|-------------|
+| [Execution Policy](docs/en/execution-policy.md) | How to allow PowerShell scripts safely |
 
 ## License
 
-MIT. См. файл [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
